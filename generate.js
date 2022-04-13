@@ -1,41 +1,29 @@
-const puppeteer = require("puppeteer");
+const html_to_pdf = require('html-pdf-node');
 const path = require('path');
 const qpdf = require("node-qpdf");
+const fs = require('fs');
+
 
 (async () => {
     const args = process.argv.slice(2)
     const url = args[0].split('=').slice(1)[0];
     const unlockKey = args[1].split('=').slice(1)[0];
 
+    let option = { format: 'A4' };
 
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto(url, {
-        waitUntil: "networkidle2"
+  
+    let file = { url };
+    const buff = await html_to_pdf.generatePdf(file, option).then(pdfBuffer => {
+        //console.log("PDF Buffer:-", pdfBuffer);
+        return pdfBuffer
     });
-    await page.setViewport({ width: 1680, height: 1050 });
-    await page.pdf({
-        path: "generated.pdf",
-        format: "A4",
-        printBackground: true,
-        displayHeaderFooter: true,
-        margin: {
-            top: '38px',
-            right: '38px',
-            bottom: '38px',
-            left: '38px'
-        }
-    });
-
-
-    await browser.close();
-    const options = {
+    const pdf = fs.createWriteStream("./test.pdf").write(buff); 
+       const options = {
         keyLength: 128,
         password: unlockKey
     }
-
-    const localFilePath = path.join(__dirname, "./generated.pdf");
+    const localFilePath = path.join(__dirname, "./test.pdf");
     const outputFilePath = path.join(__dirname, "/encrypted.pdf");
-    qpdf.encrypt(localFilePath, options, outputFilePath);
+    await qpdf.encrypt(localFilePath, options, outputFilePath);
 
 })();
