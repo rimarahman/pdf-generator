@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer");
-
+const path = require('path');
+const qpdf = require("node-qpdf");
 
 (async () => {
     const args = process.argv.slice(2)
@@ -28,4 +29,13 @@ const puppeteer = require("puppeteer");
 
 
     await browser.close();
+    const options = {
+        keyLength: 128,
+        password: unlockKey
+    }
+
+    const localFilePath = path.join(__dirname, "./generated.pdf");
+    const outputFilePath = path.join(__dirname, "/encrypted.pdf");
+    qpdf.encrypt(localFilePath, options, outputFilePath);
+
 })();
